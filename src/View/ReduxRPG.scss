@@ -1,3 +1,10 @@
+body {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 .background {
   width: 100%;
   height: 100%;
@@ -66,8 +73,122 @@
     cursor: pointer;
     opacity: 0.7;
   }
+  &.invalid {
+    opacity: 0.7;
+    &:hover {
+      cursor: auto;
+      pointer-events: none;
+    }
+  }
 }
 
 .my-shadow {
   box-shadow: 3px 3px rgba(0, 0, 0, 0.7);
+}
+
+#player-fight {
+  bottom: 100px;
+  left: 250px;
+  width: 128px;
+  height: 128px;
+  &.die {
+    opacity: 0.3;
+  }
+  &.fight {
+    animation-name: player_forward, player_backward;
+    animation-delay: 0s, 0.25s;
+    animation-duration: 0.25s, 0.125s;
+    animation-timing-function: linear;
+    @keyframes player_forward {
+      to {
+        left: 300px;
+      }
+    }
+    @keyframes player_backward {
+      from {
+        left: 300px;
+      }
+      to {
+        left: 250px;
+      }
+    }
+  }
+}
+
+#player-damaged {
+  bottom: 190px;
+  left: 230px;
+  width: 128px;
+  height: 128px;
+  font-size: 1.7rem;
+}
+
+#player-maxhp {
+  bottom: 150px;
+  left: 235px;
+  width: 128px;
+  height: 20px;
+}
+
+#player-hp {
+  margin-top: -3px;
+  margin-left: -3px;
+  width: 100%;
+  height: 100%;
+  box-sizing: content-box;
+}
+
+#enemy {
+  bottom: 100px;
+  right: 150px;
+  width: 128px;
+  height: 128px;
+  &.die {
+    opacity: 0.3;
+  }
+  &.fight {
+    animation-name: forward, backward;
+    animation-delay: 0s, 0.25s;
+    animation-duration: 0.25s, 0.125s;
+    animation-timing-function: linear;
+    @keyframes forward {
+      to {
+        right: 200px;
+      }
+    }
+    @keyframes backward {
+      from {
+        right: 200px;
+      }
+      to {
+        right: 150px;
+      }
+    }
+  }
+}
+
+#enemy-damaged {
+  bottom: 190px;
+  right: 150px;
+  width: 128px;
+  height: 128px;
+  font-size: 1.7rem;
+  &.crit {
+    font-size: 3rem;
+  }
+}
+
+#enemy-maxhp {
+  bottom: 150px;
+  right: 150px;
+  width: 128px;
+  height: 20px;
+}
+
+#enemy-hp {
+  margin-top: -3px;
+  margin-left: -3px;
+  width: 100%;
+  height: 100%;
+  box-sizing: content-box;
 }

@@ -1,32 +1,35 @@
-import { createAction, createReducer } from 'typesafe-actions';
+import { createSlice } from "@reduxjs/toolkit";
+import type { PayloadAction } from "@reduxjs/toolkit";
 
-// const { createStandardAction } = deprecated;
-
-// export const moveVillage = createStandardAction('mode/VILLAGE')();
-// export const moveShop = createStandardAction('mode/SHOP')();
-// export const moveDungeon = createStandardAction('mode/DUNGEON')();
-
-export const moveVillage = createAction('mode/VILLAGE')();
-export const moveShop = createAction('mode/SHOP')();
-export const moveDungeon = createAction('mode/DUNGEON')();
-
-const MODE = {
-  VILLAGE: 'VILLAGE',
-  SHOP: 'SHOP',
-  DUNGEON: 'DUNGEON',
-}
+type Dungeon = "slime-feild" | "golem-canyon" | "wyvern-cave";
 
 type ModeState = {
-  mode: string;
+  name: "village" | "shop" | "dungeon";
+  dungeon: Dungeon;
 };
 
 const initialState: ModeState = {
-  mode: MODE.VILLAGE
+  name: "village",
+  dungeon: "slime-feild",
 };
 
-const mode = createReducer(initialState)
-  .handleAction(moveVillage, () => ({ mode: MODE.VILLAGE }))
-  .handleAction(moveShop, () => ({ mode: MODE.SHOP }))
-  .handleAction(moveDungeon, () => ({ mode: MODE.DUNGEON }))
+export const modeSlice = createSlice({
+  name: "mode",
+  initialState,
+  reducers: {
+    moveVillage: (state) => {
+      state.name = "village";
+    },
+    moveShop: (state) => {
+      state.name = "shop";
+    },
+    moveDungeon: (state, action: PayloadAction<Dungeon>) => {
+      state.name = "dungeon";
+      state.dungeon = action.payload;
+    },
+  },
+});
 
-export default mode;
+export const { moveVillage, moveShop, moveDungeon } = modeSlice.actions;
+
+export default modeSlice.reducer;

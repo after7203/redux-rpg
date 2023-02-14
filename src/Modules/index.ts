@@ -1,10 +1,11 @@
-import { combineReducers } from 'redux';
-import mode from './mode';
+import { configureStore } from "@reduxjs/toolkit";
+import modeReducer from "./mode";
+import enemyReducer from "./enemy";
+import playerReducer from "./player";
 
-const rootReducer = combineReducers({
-  mode
+export const store = configureStore({
+  reducer: { mode: modeReducer, player: playerReducer, enemy: enemyReducer },
 });
 
-export default rootReducer;
-
-export type RootState = ReturnType<typeof rootReducer>;
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
