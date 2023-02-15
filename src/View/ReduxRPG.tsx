@@ -18,6 +18,12 @@ const ReduxRPG = () => {
         payload?: number | string
     }
     const [logs, setLogs] = useState<Log[]>([])
+    type Tooltip = {
+        type: 'interface' | 'gold' | 'item',
+        part?: number,
+        tier?: number,
+    }
+    const [tooltipInfo, setTooltipInfo] = useState<Tooltip>()
     const ref_player = useRef<HTMLImageElement>(null)
     const ref_enemy = useRef<HTMLImageElement>(null)
     const ref_btn_attck = useRef<HTMLDivElement>(null)
@@ -26,15 +32,14 @@ const ReduxRPG = () => {
     const ref_enemy_damaged = useRef<HTMLDivElement>(null)
     const ref_player_hp = useRef<HTMLDivElement>(null)
     const ref_enemy_hp = useRef<HTMLDivElement>(null)
+    const ref_tooltip = useRef<HTMLDivElement>(null)
     const dispatch = useDispatch()
     useEffect(() => {
-        // console.log(mode)
         if (mode.name === 'village') {
             setDgBtnVisible(false)
         }
         else if (mode.name === 'dungeon') {
             const monsters = Monsters[mode.dungeon]
-            // console.log(monsters)
             const select = Math.floor(Math.random() * monsters.length);
             const monster = monsters[select]
             if (['와이번', '아이스 와이번', '파이어 와이번'].includes(monster.name)) {
@@ -44,12 +49,12 @@ const ReduxRPG = () => {
             addLog({ name: 'encounter' })
         }
     }, [mode])
-    // useEffect(() => {
-    //     console.log(Items[0][player.equip[0]])
-    // }, [])
-    // useEffect(() => {
-    //     console.log(enemy)
-    // }, [enemy])
+    useEffect(() => {
+        window.addEventListener('mousemove', moveTooltip)
+        return () => {
+            window.removeEventListener("mousemove", moveTooltip);
+        }
+    }, [])
     const addLog = (new_log: Log) => {
         setLogs(prev_logs => {
             if (prev_logs.length >= 7) {
@@ -154,13 +159,37 @@ const ReduxRPG = () => {
     const delay = (ms: number) => new Promise((resolve) => {
         setTimeout(resolve, ms);
     });
+    const moveTooltip = (e: MouseEvent) => {
+        if (ref_tooltip.current) {
+            ref_tooltip.current.style.left = e.clientX + 35 + 'px';
+            if (e.clientY + 40 + ref_tooltip.current.offsetHeight <= 929) {
+                ref_tooltip.current.style.top = e.clientY + 40 + 'px';
+            }
+            else {
+                ref_tooltip.current.style.top = 929 - ref_tooltip.current.offsetHeight + 'px'
+            }
+        }
+    }
+    const setVisibleTT = (tooltip: Tooltip) => {
+        if (ref_tooltip.current) {
+            ref_tooltip.current.classList.add('visible')
+            ref_tooltip.current.classList.remove('invisible')
+        }
+        setTooltipInfo(tooltip)
+    }
+    const setInvisibleTT = () => {
+        if (ref_tooltip.current) {
+            ref_tooltip.current.classList.add('invisible')
+            ref_tooltip.current.classList.remove('visible')
+        }
+    }
     const [dgBtnVisible, setDgBtnVisible] = useState(false)
     return (
         <div className="vw-100 vh-100 d-flex justify-content-center align-items-center">
-            <img className="background opacity-25 position-absolute" src={require('Asset/background.jpg')} alt="" />
+            <img className="vw-100 vh-100 background opacity-25 position-absolute" src={require('Asset/background.jpg')} alt="" />
             <div className="game d-flex">
                 <div id='left' className="d-flex flex-column">
-                    <div id='user-interface' className="d-flex my-shadow text-white text-shadow border border-dark border-3 bg-secondary bg-gradient p-4 rounded m-2 flex-fill bg-opacity-75">
+                    <div id='user-interface' onMouseEnter={() => setVisibleTT({ type: 'interface' })} onMouseLeave={setInvisibleTT} className="d-flex my-shadow text-white text-shadow border border-dark border-3 bg-secondary bg-gradient p-4 rounded m-2 flex-fill bg-opacity-75">
                         <div className='d-flex flex-column'>
                             <h4>공격력: </h4><h4>체력: </h4><h4>크리티컬 확률: </h4><h4>회피율: </h4>
                         </div>
@@ -168,31 +197,31 @@ const ReduxRPG = () => {
                             <h4>{Math.round(player.atk * (player.atk_amp + 1))}</h4><h4>{player.hp}/{player.maxHp}</h4><h4>{player.crit * 100}%</h4><h4>{player.miss * 100}%</h4>
                         </div>
                     </div>
-                    <div className="gold d-flex my-shadow text-white text-shadow border border-dark border-3 bg-secondary bg-gradient p-2 rounded m-2 bg-opacity-75 align-items-center justify-content-end">
+                    <div onMouseEnter={() => setVisibleTT({ type: 'gold' })} onMouseLeave={setInvisibleTT} className="gold d-flex my-shadow text-white text-shadow border border-dark border-3 bg-secondary bg-gradient p-2 rounded m-2 bg-opacity-75 align-items-center justify-content-end">
                         <h2 className='m-0 mt-1 text-warning'>{player.gold}</h2>
                         <img className='ms-4 pixel' src={require('Asset/coin.png')} style={{ width: '32px', height: '32px' }} />
                     </div>
                     <div className="items container">
                         <div className="row">
                             <div className="item col my-shadow border border-dark border-3 bg-secondary bg-gradient rounded m-2 p-0 bg-opacity-75" >
-                                <img className='pixel img-full' src={player.equip[0] === 0 ? require('Asset/default-weapon.png') : require(`Asset/${Items[0][player.equip[0]].img}`)} alt="" />
+                                <img className='pixel img-full' onMouseEnter={() => player.equip[0] !== 0 && setVisibleTT({ type: 'item', part: 0, tier: player.equip[0] })} onMouseLeave={setInvisibleTT} src={player.equip[0] === 0 ? require('Asset/default-weapon.png') : require(`Asset/${Items[0][player.equip[0]].img}`)} alt="" />
                             </div>
                             <div className="item col my-shadow border border-dark border-3 bg-secondary bg-gradient rounded m-2 p-0 bg-opacity-75" >
-                                <img className='pixel img-full' src={player.equip[1] === 0 ? require('Asset/default-shield.png') : require(`Asset/${Items[1][player.equip[1]].img}`)} alt="" />
+                                <img className='pixel img-full' onMouseEnter={() => player.equip[1] !== 0 && setVisibleTT({ type: 'item', part: 1, tier: player.equip[1] })} onMouseLeave={setInvisibleTT} src={player.equip[1] === 0 ? require('Asset/default-shield.png') : require(`Asset/${Items[1][player.equip[1]].img}`)} alt="" />
                             </div>
                             <div className="item col my-shadow border border-dark border-3 bg-secondary bg-gradient rounded m-2 p-0 bg-opacity-75" >
-                                <img className='pixel img-full' src={player.equip[2] === 0 ? require('Asset/default-amor.png') : require(`Asset/${Items[2][player.equip[2]].img}`)} alt="" />
+                                <img className='pixel img-full' onMouseEnter={() => player.equip[2] !== 0 && setVisibleTT({ type: 'item', part: 2, tier: player.equip[2] })} onMouseLeave={setInvisibleTT} src={player.equip[2] === 0 ? require('Asset/default-amor.png') : require(`Asset/${Items[2][player.equip[2]].img}`)} alt="" />
                             </div>
                         </div>
                         <div className="row">
                             <div className="item col my-shadow border border-dark border-3 bg-info bg-gradient rounded m-2 p-0 bg-opacity-75" >
-                                <img className='pixel img-full' src={player.equip[3] === 0 ? require('Asset/default-item.png') : require(`Asset/${Items[3][player.equip[3]].img}`)} alt="" />
+                                <img className='pixel img-full' onMouseEnter={() => player.equip[3] !== 0 && setVisibleTT({ type: 'item', part: 3, tier: player.equip[3] })} onMouseLeave={setInvisibleTT} src={player.equip[3] === 0 ? require('Asset/default-item.png') : require(`Asset/${Items[3][player.equip[3]].img}`)} alt="" />
                             </div>
                             <div className="item col my-shadow border border-dark border-3 bg-info bg-gradient rounded m-2 p-0 bg-opacity-75" >
-                                <img className='pixel img-full' src={player.equip[4] === 0 ? require('Asset/default-item.png') : require(`Asset/${Items[4][player.equip[4]].img}`)} alt="" />
+                                <img className='pixel img-full' onMouseEnter={() => player.equip[4] !== 0 && setVisibleTT({ type: 'item', part: 4, tier: player.equip[4] })} onMouseLeave={setInvisibleTT} src={player.equip[4] === 0 ? require('Asset/default-item.png') : require(`Asset/${Items[4][player.equip[4]].img}`)} alt="" />
                             </div>
                             <div className="item col my-shadow border border-dark border-3 bg-info bg-gradient rounded m-2 p-0 bg-opacity-75" >
-                                <img className='pixel img-full' src={player.equip[5] === 0 ? require('Asset/default-item.png') : require(`Asset/${Items[5][player.equip[5]].img}`)} alt="" />
+                                <img className='pixel img-full' onMouseEnter={() => player.equip[5] !== 0 && setVisibleTT({ type: 'item', part: 5, tier: player.equip[5] })} onMouseLeave={setInvisibleTT} src={player.equip[5] === 0 ? require('Asset/default-item.png') : require(`Asset/${Items[5][player.equip[5]].img}`)} alt="" />
                             </div>
                         </div>
                     </div>
@@ -239,7 +268,7 @@ const ReduxRPG = () => {
                                                     else
                                                         return (
                                                             <div key={j} className='shop-item d-flex flex-column'>
-                                                                <img src={require(`Asset/${item.img}`)} className="pixel border border-dark border-3 bg-success bg-gradient rounded p-0" style={{ width: '100px', height: '100px' }} />
+                                                                <img onMouseEnter={() => setVisibleTT({ type: 'item', part: i, tier: j })} onMouseLeave={setInvisibleTT} src={require(`Asset/${item.img}`)} className="pixel border border-dark border-3 bg-success bg-gradient rounded p-0" style={{ width: '100px', height: '100px' }} />
                                                                 <div onClick={() => { if (player.gold >= Items[i][j].gold) dispatch(module_player.equip(Items[i][j])); }} className="my-btn d-flex justify-content-center align-items-center border border-dark border-3 bg-secondary bg-gradient rounded p-0" style={{ width: '100px', height: '40px', marginTop: '-3px' }} >
                                                                     <h4 className='m-0 mt-1 text-shadow text-warning'>{item.gold}</h4>
                                                                     <img className='ms-1 pixel' src={require('Asset/coin.png')} style={{ width: '22px', height: '22px' }} />
@@ -362,6 +391,31 @@ const ReduxRPG = () => {
                             </div>
                         }
                     </div>
+                </div>
+                <div ref={ref_tooltip} id='tooltip' className="invisible border border-dark border-3 w-auto h-auto position-absolute bg-secondary bg-opacity-75 bg-gradient rounded p-2 text-shadow text-white">
+                    {tooltipInfo?.type === 'interface' &&
+                        <h4>
+                            공격시 공격력의 80%~120%의 피해를 줍니다<br /><br />
+                            체력이 0이 되면 패배합니다<br /><br />
+                            크리티컬 발동시 180%의 피해를 줍니다<br /><br />
+                            회피시 피해를 받지않습니다
+                        </h4>
+                    }
+                    {tooltipInfo?.type === 'gold' &&
+                        <h4>골드로 상점에서 장비를 구입할 수 있습니다</h4>
+                    }
+                    {tooltipInfo?.type === 'item' && tooltipInfo.part !== undefined && tooltipInfo.tier &&
+                        <>
+                            <h4>{Items[tooltipInfo.part][tooltipInfo.tier].name}</h4><br />
+                            {Items[tooltipInfo.part][tooltipInfo.tier].atk !== 0 && <h4>공격력 +{Items[tooltipInfo.part][tooltipInfo.tier].atk}</h4>}
+                            {Items[tooltipInfo.part][tooltipInfo.tier].maxHp !== 0 && <h4>체력 +{Items[tooltipInfo.part][tooltipInfo.tier].maxHp}</h4>}
+                            {Items[tooltipInfo.part][tooltipInfo.tier].atk_amp !== 0 && <h4>공격력 증폭 +{Items[tooltipInfo.part][tooltipInfo.tier].atk_amp * 100}%</h4>}
+                            {Items[tooltipInfo.part][tooltipInfo.tier].def_amp !== 0 && <h4>방어율 +{Items[tooltipInfo.part][tooltipInfo.tier].def_amp * 100}%</h4>}
+                            {Items[tooltipInfo.part][tooltipInfo.tier].crit !== 0 && <h4>크리티컬 확률 +{Items[tooltipInfo.part][tooltipInfo.tier].crit * 100}%</h4>}
+                            <br />
+                            <h4>{Items[tooltipInfo.part][tooltipInfo.tier].desc}</h4>
+                        </>
+                    }
                 </div>
             </div>
         </div >

@@ -23,6 +23,7 @@ const Items = [
       equip_info: [0, 1],
       gold: 10,
       img: "weapon-1.png",
+      desc: "초보자들이 애용하는 검",
     },
     {
       name: "철 검",
@@ -35,6 +36,7 @@ const Items = [
       equip_info: [0, 2],
       gold: 80,
       img: "weapon-2.png",
+      desc: "노련한 대장장이가 제련한 검",
     },
     {
       name: "다이아몬드 검",
@@ -47,6 +49,7 @@ const Items = [
       equip_info: [0, 3],
       gold: 500,
       img: "weapon-3.png",
+      desc: "희귀한 다이아몬드로 만든 날카로운 검, 시공간 마저 베어버릴 듯 하다",
     },
   ],
   [
@@ -73,6 +76,7 @@ const Items = [
       equip_info: [1, 1],
       gold: 10,
       img: "shield-1.png",
+      desc: "튼튼한 나무로 만든 방패",
     },
     {
       name: "철 방패",
@@ -85,6 +89,7 @@ const Items = [
       equip_info: [1, 2],
       gold: 80,
       img: "shield-2.png",
+      desc: "웬만한 공격에 흠집조차 나지않는 방패",
     },
     {
       name: "다이아몬드 방패",
@@ -97,6 +102,7 @@ const Items = [
       equip_info: [1, 3],
       gold: 500,
       img: "shield-3.png",
+      desc: "이 방패를 깨뜨릴 수 있는 검은 없습니다",
     },
   ],
   [
@@ -123,6 +129,7 @@ const Items = [
       equip_info: [2, 1],
       gold: 10,
       img: "amor-1.png",
+      desc: "음.. 나무로 갑옷도 만들던가..?",
     },
     {
       name: "철 갑옷",
@@ -135,6 +142,7 @@ const Items = [
       equip_info: [2, 2],
       gold: 80,
       img: "amor-2.png",
+      desc: "왜 갑옷을 입었는데 공격력이 오르나요?",
     },
     {
       name: "다이아몬드 갑옷",
@@ -147,6 +155,7 @@ const Items = [
       equip_info: [2, 3],
       gold: 500,
       img: "amor-3.png",
+      desc: "튼튼하면서도 가벼운 완벽한 갑옷",
     },
   ],
   [
@@ -173,6 +182,7 @@ const Items = [
       equip_info: [3, 1],
       gold: 0,
       img: "crown.png",
+      desc: "킹 슬라임이 쓰고 있던 왕관",
     },
   ],
   [
@@ -199,6 +209,7 @@ const Items = [
       equip_info: [4, 1],
       gold: 0,
       img: "ring.png",
+      desc: "언데드 골렘의 돌 조각을 장식한 반지",
     },
   ],
   [
@@ -215,16 +226,17 @@ const Items = [
       img: "shield-1.png",
     },
     {
-      name: "와이번 이빨 목걸이",
-      maxHp: 100,
-      hp: 100,
-      atk: 25,
+      name: "에인션트 와이번 이빨 목걸이",
+      maxHp: 0,
+      hp: 0,
+      atk: 0,
       atk_amp: 0,
       def_amp: 0,
       crit: 0.1,
       equip_info: [5, 1],
       gold: 0,
       img: "necklace.png",
+      desc: "에인션트 와이번의 이빨을 달아놓은 목걸이",
     },
   ],
 ];
