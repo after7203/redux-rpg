@@ -37,6 +37,9 @@ const ReduxRPG = () => {
             // console.log(monsters)
             const select = Math.floor(Math.random() * monsters.length);
             const monster = monsters[select]
+            if (['와이번', '아이스 와이번', '파이어 와이번'].includes(monster.name)) {
+                ref_enemy.current && (ref_enemy.current.style.width = '400px');
+            }
             dispatch(module_enemy.initailize(monster))
             addLog({ name: 'encounter' })
         }
@@ -99,6 +102,10 @@ const ReduxRPG = () => {
             else if (enemy.name === '언데드 골렘' && player.equip[4] === 0) {
                 dispatch(module_player.equip(Items[4][1]))
                 addLog({ name: 'item_get', payload: Items[4][1].name })
+            }
+            else if (enemy.name === '에인션트 와이번' && player.equip[5] === 0) {
+                dispatch(module_player.equip(Items[5][1]))
+                addLog({ name: 'item_get', payload: Items[5][1].name })
             }
             const earnd_gold = Math.round((Math.random() * 0.5 + 1) * enemy.gold)
             addLog({ name: 'gold_get', payload: earnd_gold })
@@ -185,14 +192,14 @@ const ReduxRPG = () => {
                                 <img className='pixel img-full' src={player.equip[4] === 0 ? require('Asset/default-item.png') : require(`Asset/${Items[4][player.equip[4]].img}`)} alt="" />
                             </div>
                             <div className="item col my-shadow border border-dark border-3 bg-info bg-gradient rounded m-2 p-0 bg-opacity-75" >
-                                <img className='pixel img-full' src={require('Asset/default-item.png')} alt="" />
+                                <img className='pixel img-full' src={player.equip[5] === 0 ? require('Asset/default-item.png') : require(`Asset/${Items[5][player.equip[5]].img}`)} alt="" />
                             </div>
                         </div>
                     </div>
                 </div>
                 <div id='screen' className="p-2 position-relative">
                     {mode.name === 'village' &&
-                        <div id="village" className='border border-dark border-3 my-shadow rounded w-100 h-100'>
+                        <div id="village" className='position-relative border border-dark border-3 my-shadow rounded w-100 h-100'>
                             <img className='img-full' src={require('Asset/village.jpg')} alt="" />
                             <img className='player pixel position-absolute translate-middle top-50 start-50' src={require('Asset/player.gif')} alt="" />
                             <div onClick={() => dispatch(moveShop())} className="my-btn border border-dark border-3 position-absolute bg-primary bg-gradient rounded p-0 bg-opacity-75 text-shadow" style={{ bottom: '50px', left: '50px' }}>
@@ -217,7 +224,7 @@ const ReduxRPG = () => {
                         </div>
                     }
                     {mode.name === 'shop' &&
-                        <div id="shop" className='border border-dark border-3 my-shadow rounded w-100 h-100'>
+                        <div id="shop" className='position-relative border border-dark border-3 my-shadow rounded w-100 h-100'>
                             <img className='img-full' src={require('Asset/shop.jpg')} alt="" />
                             <div className='d-flex flex-column justify-content-between align-items-center position-absolute w-100 h-100 top-0 left-0 p-5'>
                                 {Items.map((items, i) => {
@@ -264,7 +271,7 @@ const ReduxRPG = () => {
                                 <div className='d-flex justify-content-center' style={{ width: '128px' }}>
                                     <img id='enemy' ref={ref_enemy} className='pixel' src={require(`Asset/${enemy.img}`)} alt="" />
                                 </div>
-                                <div id="enemy-maxhp" className="border border-dark border-3 bg-warning bg-gradient rounded p-0" >
+                                <div id="enemy-maxhp" className="flex-shrink-0 border border-dark border-3 bg-warning bg-gradient rounded p-0" >
                                     <div id="enemy-hp" ref={ref_enemy_hp} className="border border-dark border-3 bg-danger bg-gradient rounded p-0" />
                                 </div>
                             </div>
