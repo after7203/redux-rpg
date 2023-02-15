@@ -36,7 +36,7 @@ const initialState: PlayerState = {
   crit: 0.1,
   miss: 0.1,
   gold: 0,
-  equip: [0, 0, 0, 0, 0, 1],
+  equip: [0, 0, 0, 0, 0, 0],
 };
 
 export const playerSlice = createSlice({
