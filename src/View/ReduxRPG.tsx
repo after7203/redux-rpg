@@ -1,11 +1,12 @@
 import { RootState } from 'Modules/index'
-import { moveDungeon, moveVillage } from 'Modules/mode'
+import { moveDungeon, moveShop, moveVillage } from 'Modules/mode'
 import { module_enemy } from 'Modules/enemy'
 import { module_player } from 'Modules/player'
 import { useEffect, useState, useRef } from 'react'
 import { useSelector } from 'react-redux'
 import { useDispatch } from 'react-redux/es/exports'
 import Monsters from 'DataBase/monster'
+import Items from 'DataBase/items'
 import './ReduxRPG.scss'
 
 const ReduxRPG = () => {
@@ -13,8 +14,8 @@ const ReduxRPG = () => {
     const player = useSelector((state: RootState) => state.player)
     const enemy = useSelector((state: RootState) => state.enemy)
     type Log = {
-        name: 'encounter' | 'player_attack' | 'enemy_attack' | 'player_crit' | 'enemy_miss' | 'win' | 'lose' | 'gold_get',
-        payload?: number
+        name: 'encounter' | 'player_attack' | 'enemy_attack' | 'player_crit' | 'enemy_miss' | 'win' | 'lose' | 'gold_get' | 'item_get',
+        payload?: number | string
     }
     const [logs, setLogs] = useState<Log[]>([])
     const ref_player = useRef<HTMLImageElement>(null)
@@ -41,6 +42,9 @@ const ReduxRPG = () => {
         }
     }, [mode])
     // useEffect(() => {
+    //     console.log(Items[0][player.equip[0]])
+    // }, [])
+    // useEffect(() => {
     //     console.log(enemy)
     // }, [enemy])
     const addLog = (new_log: Log) => {
@@ -54,12 +58,14 @@ const ReduxRPG = () => {
         })
     }
     const attack = async () => {
+        if (ref_btn_attck.current?.classList.contains('invalid')) return;
         ref_btn_attck.current?.classList.add('invalid');
         ref_player.current?.classList.remove("fight");
         void ref_player.current?.offsetWidth;
         ref_player.current?.classList.add('fight');
-        let player_damage = Math.round((Math.random() * 0.4 + 0.8) * player.atk);
+        let player_damage = (Math.random() * 0.4 + 0.8) * player.atk * (player.atk_amp + 1);
         if (Math.random() > player.crit) {
+            player_damage = Math.round(player_damage)
             addLog({ name: 'player_attack', payload: player_damage })
             if (ref_enemy_damaged.current) ref_enemy_damaged.current.innerText = player_damage.toString();
         }
@@ -86,6 +92,14 @@ const ReduxRPG = () => {
             ref_enemy.current?.classList.add('die');
             ref_enemy.current && (ref_enemy.current.src = require(`Asset/${enemy.dead}`));
             addLog({ name: 'win' })
+            if (enemy.name === '킹 슬라임' && player.equip[3] === 0) {
+                dispatch(module_player.equip(Items[3][1]))
+                addLog({ name: 'item_get', payload: Items[3][1].name })
+            }
+            else if (enemy.name === '언데드 골렘' && player.equip[4] === 0) {
+                dispatch(module_player.equip(Items[4][1]))
+                addLog({ name: 'item_get', payload: Items[4][1].name })
+            }
             const earnd_gold = Math.round((Math.random() * 0.5 + 1) * enemy.gold)
             addLog({ name: 'gold_get', payload: earnd_gold })
             dispatch(module_player.earn(earnd_gold));
@@ -99,7 +113,7 @@ const ReduxRPG = () => {
         ref_enemy.current?.classList.remove("fight");
         void ref_enemy.current?.offsetWidth;
         ref_enemy.current?.classList.add('fight');
-        let enemy_damage = Math.round((Math.random() * 0.4 + 0.8) * enemy.atk);
+        let enemy_damage = Math.round((Math.random() * 0.4 + 0.8) * enemy.atk * (1 - player.def_amp));
         if (Math.random() > player.miss) {
             addLog({ name: 'enemy_attack', payload: enemy_damage })
             if (ref_player_damaged.current) ref_player_damaged.current.innerText = enemy_damage.toString();
@@ -140,11 +154,11 @@ const ReduxRPG = () => {
             <div className="game d-flex">
                 <div id='left' className="d-flex flex-column">
                     <div id='user-interface' className="d-flex my-shadow text-white text-shadow border border-dark border-3 bg-secondary bg-gradient p-4 rounded m-2 flex-fill bg-opacity-75">
-                        <div className='d-flex flex-column m-2'>
-                            <h3>공격력: </h3><h3>체력: </h3>
+                        <div className='d-flex flex-column'>
+                            <h4>공격력: </h4><h4>체력: </h4><h4>크리티컬 확률: </h4><h4>회피율: </h4>
                         </div>
-                        <div className='d-flex flex-column flex-fill align-items-end m-2'>
-                            <h3>{player.atk}</h3><h3>{player.hp}/{player.maxHp}</h3>
+                        <div className='d-flex flex-column flex-fill align-items-end'>
+                            <h4>{Math.round(player.atk * (player.atk_amp + 1))}</h4><h4>{player.hp}/{player.maxHp}</h4><h4>{player.crit * 100}%</h4><h4>{player.miss * 100}%</h4>
                         </div>
                     </div>
                     <div className="gold d-flex my-shadow text-white text-shadow border border-dark border-3 bg-secondary bg-gradient p-2 rounded m-2 bg-opacity-75 align-items-center justify-content-end">
@@ -154,23 +168,23 @@ const ReduxRPG = () => {
                     <div className="items container">
                         <div className="row">
                             <div className="item col my-shadow border border-dark border-3 bg-secondary bg-gradient rounded m-2 p-0 bg-opacity-75" >
-                                <img className='pixel img-full' src={require('Asset/default-weapon.png')} alt="" />
+                                <img className='pixel img-full' src={player.equip[0] === 0 ? require('Asset/default-weapon.png') : require(`Asset/${Items[0][player.equip[0]].img}`)} alt="" />
                             </div>
                             <div className="item col my-shadow border border-dark border-3 bg-secondary bg-gradient rounded m-2 p-0 bg-opacity-75" >
-                                <img className='pixel img-full' src={require('Asset/default-shield.png')} alt="" />
+                                <img className='pixel img-full' src={player.equip[1] === 0 ? require('Asset/default-shield.png') : require(`Asset/${Items[1][player.equip[1]].img}`)} alt="" />
                             </div>
                             <div className="item col my-shadow border border-dark border-3 bg-secondary bg-gradient rounded m-2 p-0 bg-opacity-75" >
-                                <img className='pixel img-full' src={require('Asset/default-amor.png')} alt="" />
+                                <img className='pixel img-full' src={player.equip[2] === 0 ? require('Asset/default-amor.png') : require(`Asset/${Items[2][player.equip[2]].img}`)} alt="" />
                             </div>
                         </div>
                         <div className="row">
-                            <div className="item col my-shadow border border-dark border-3 bg-secondary bg-gradient rounded m-2 p-0 bg-opacity-75" >
-                                <img className='pixel img-full' src={require('Asset/default-item.png')} alt="" />
+                            <div className="item col my-shadow border border-dark border-3 bg-info bg-gradient rounded m-2 p-0 bg-opacity-75" >
+                                <img className='pixel img-full' src={player.equip[3] === 0 ? require('Asset/default-item.png') : require(`Asset/${Items[3][player.equip[3]].img}`)} alt="" />
                             </div>
-                            <div className="item col my-shadow border border-dark border-3 bg-secondary bg-gradient rounded m-2 p-0 bg-opacity-75" >
-                                <img className='pixel img-full' src={require('Asset/default-item.png')} alt="" />
+                            <div className="item col my-shadow border border-dark border-3 bg-info bg-gradient rounded m-2 p-0 bg-opacity-75" >
+                                <img className='pixel img-full' src={player.equip[4] === 0 ? require('Asset/default-item.png') : require(`Asset/${Items[4][player.equip[4]].img}`)} alt="" />
                             </div>
-                            <div className="item col my-shadow border border-dark border-3 bg-secondary bg-gradient rounded m-2 p-0 bg-opacity-75" >
+                            <div className="item col my-shadow border border-dark border-3 bg-info bg-gradient rounded m-2 p-0 bg-opacity-75" >
                                 <img className='pixel img-full' src={require('Asset/default-item.png')} alt="" />
                             </div>
                         </div>
@@ -181,7 +195,7 @@ const ReduxRPG = () => {
                         <div id="village" className='border border-dark border-3 my-shadow rounded w-100 h-100'>
                             <img className='img-full' src={require('Asset/village.jpg')} alt="" />
                             <img className='player pixel position-absolute translate-middle top-50 start-50' src={require('Asset/player.gif')} alt="" />
-                            <div className="my-btn border border-dark border-3 position-absolute bg-primary bg-gradient rounded p-0 bg-opacity-75 text-shadow" style={{ bottom: '50px', left: '50px' }}>
+                            <div onClick={() => dispatch(moveShop())} className="my-btn border border-dark border-3 position-absolute bg-primary bg-gradient rounded p-0 bg-opacity-75 text-shadow" style={{ bottom: '50px', left: '50px' }}>
                                 상점
                             </div>
                             <div onClick={() => setDgBtnVisible(prev => !prev)} className="my-btn border border-dark border-3 position-absolute bg-primary bg-gradient rounded p-0 bg-opacity-75 text-shadow" style={{ bottom: '50px', right: '50px' }}>
@@ -189,7 +203,7 @@ const ReduxRPG = () => {
                             </div>
                             {dgBtnVisible &&
                                 <div className='position-absolute' style={{ bottom: '110px', right: '50px' }}>
-                                    <div onClick={() => dispatch(moveDungeon('slime-feild'))} className="my-btn border border-dark border-3 bg-primary bg-warning rounded p-0 bg-opacity-75 text-shadow">
+                                    <div onClick={() => dispatch(moveDungeon('slime-field'))} className="my-btn border border-dark border-3 bg-primary bg-warning rounded p-0 bg-opacity-75 text-shadow">
                                         슬라임 숲
                                     </div>
                                     <div onClick={() => dispatch(moveDungeon('golem-canyon'))} className="my-btn border border-dark border-3 bg-primary bg-warning rounded p-0 bg-opacity-75 text-shadow">
@@ -202,18 +216,57 @@ const ReduxRPG = () => {
                             }
                         </div>
                     }
-                    {mode.name === 'dungeon' &&
-                        <div id="dungeon" className='border position-relative border-dark border-3 my-shadow rounded w-100 h-100'>
-                            <img className='img-full pixel' src={require('Asset/slime-field.png')} alt="" />
-                            <img id='player-fight' ref={ref_player} className='pixel position-absolute translate-middle' src={require('Asset/player-fight.gif')} alt="" />
-                            <div id="player-damaged" ref={ref_player_damaged} className='activate position-absolute translate-middle text-shadow text-warning d-flex justify-content-center align-items-center'></div>
-                            <div id="player-maxhp" className="border border-dark border-3 position-absolute translate-middle bg-warning bg-gradient rounded p-0" >
-                                <div id="player-hp" ref={ref_player_hp} className="border border-dark border-3 bg-danger bg-gradient rounded p-0" />
+                    {mode.name === 'shop' &&
+                        <div id="shop" className='border border-dark border-3 my-shadow rounded w-100 h-100'>
+                            <img className='img-full' src={require('Asset/shop.jpg')} alt="" />
+                            <div className='d-flex flex-column justify-content-between align-items-center position-absolute w-100 h-100 top-0 left-0 p-5'>
+                                {Items.map((items, i) => {
+                                    if (i >= 3)
+                                        return
+                                    else
+                                        return (
+                                            <div key={i} className='d-flex align-items-center'>
+                                                {items.map((item, j) => {
+                                                    if (j === 0)
+                                                        return
+                                                    else
+                                                        return (
+                                                            <div key={j} className='shop-item d-flex flex-column'>
+                                                                <img src={require(`Asset/${item.img}`)} className="pixel border border-dark border-3 bg-success bg-gradient rounded p-0" style={{ width: '100px', height: '100px' }} />
+                                                                <div onClick={() => { if (player.gold >= Items[i][j].gold) dispatch(module_player.equip(Items[i][j])); }} className="my-btn d-flex justify-content-center align-items-center border border-dark border-3 bg-secondary bg-gradient rounded p-0" style={{ width: '100px', height: '40px', marginTop: '-3px' }} >
+                                                                    <h4 className='m-0 mt-1 text-shadow text-warning'>{item.gold}</h4>
+                                                                    <img className='ms-1 pixel' src={require('Asset/coin.png')} style={{ width: '22px', height: '22px' }} />
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                })}
+                                            </div>
+                                        )
+                                })}
                             </div>
-                            <img id='enemy' ref={ref_enemy} className='pixel position-absolute translate-middle' src={require(`Asset/${enemy.img}`)} alt="" />
-                            <div id="enemy-damaged" ref={ref_enemy_damaged} className='activate position-absolute translate-middle text-shadow text-danger d-flex justify-content-center align-items-center'></div>
-                            <div id="enemy-maxhp" className="border border-dark border-3 position-absolute translate-middle bg-warning bg-gradient rounded p-0" >
-                                <div id="enemy-hp" ref={ref_enemy_hp} className="border border-dark border-3 bg-danger bg-gradient rounded p-0" />
+                            <div onClick={() => { dispatch(moveVillage()) }} className="my-btn border border-dark border-3 position-absolute bg-primary bg-gradient rounded p-0 bg-opacity-75 text-shadow" style={{ bottom: '50px', left: '50px' }}>
+                                뒤로
+                            </div>
+                        </div>
+                    }
+                    {mode.name === 'dungeon' &&
+                        <div id="dungeon" className='d-flex justify-content-between border position-relative border-dark border-3 my-shadow rounded w-100 h-100'>
+                            <img className='img-full pixel position-absolute' src={require(`Asset/${mode.dungeon}.png`)} alt="" />
+                            <div className='d-flex flex-column justify-content-end' style={{ marginLeft: '250px', marginBottom: '130px', zIndex: 10 }}>
+                                <div id="player-damaged" ref={ref_player_damaged} className='d-flex justify-content-center align-items-center text-shadow text-warning' />
+                                <img id='player-fight' ref={ref_player} className='pixel position-relative' src={require('Asset/player-fight.gif')} alt="" />
+                                <div id="player-maxhp" className="border border-dark border-3 bg-warning bg-gradient rounded p-0" >
+                                    <div id="player-hp" ref={ref_player_hp} className="border border-dark border-3 bg-danger bg-gradient rounded p-0" />
+                                </div>
+                            </div>
+                            <div className='d-flex flex-column justify-content-end align-items-end' style={{ marginRight: '250px', marginBottom: '130px', zIndex: 10 }}>
+                                <div id="enemy-damaged" ref={ref_enemy_damaged} className='text-shadow text-danger d-flex justify-content-center align-items-center' />
+                                <div className='d-flex justify-content-center' style={{ width: '128px' }}>
+                                    <img id='enemy' ref={ref_enemy} className='pixel' src={require(`Asset/${enemy.img}`)} alt="" />
+                                </div>
+                                <div id="enemy-maxhp" className="border border-dark border-3 bg-warning bg-gradient rounded p-0" >
+                                    <div id="enemy-hp" ref={ref_enemy_hp} className="border border-dark border-3 bg-danger bg-gradient rounded p-0" />
+                                </div>
                             </div>
                             <div className="border border-dark border-3 position-absolute bg-secondary bg-gradient rounded p-2 bg-opacity-75 text-shadow text-white" style={{ top: '-3px', left: '-3px', width: '40%', height: '35%' }}>
                                 {logs.map((log, idx) => {
@@ -266,6 +319,12 @@ const ReduxRPG = () => {
                                                     <span style={{ color: 'orange' }}>{log.payload}</span><span>{`골드 획득!`}</span>
                                                 </div>
                                             )
+                                        case 'item_get':
+                                            return (
+                                                <div key={idx}>
+                                                    <span style={{ color: 'orange' }}>{log.payload}</span><span>{`(을)를 획득!`}</span>
+                                                </div>
+                                            )
                                         default:
                                             return
                                     }
@@ -278,7 +337,6 @@ const ReduxRPG = () => {
                                 공격
                             </div>
                         </div>
-
                     }
                 </div>
                 <div id="right" className='p-2'>
@@ -299,7 +357,7 @@ const ReduxRPG = () => {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     )
 }
 

@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
-type Dungeon = "slime-feild" | "golem-canyon" | "wyvern-cave";
+type Dungeon = "slime-field" | "golem-canyon" | "wyvern-cave";
 
 type ModeState = {
   name: "village" | "shop" | "dungeon";
@@ -10,7 +10,7 @@ type ModeState = {
 
 const initialState: ModeState = {
   name: "village",
-  dungeon: "slime-feild",
+  dungeon: "slime-field",
 };
 
 export const modeSlice = createSlice({
