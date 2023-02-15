@@ -162,11 +162,12 @@ const ReduxRPG = () => {
     const moveTooltip = (e: MouseEvent) => {
         if (ref_tooltip.current) {
             ref_tooltip.current.style.left = e.clientX + 35 + 'px';
-            if (e.clientY + 40 + ref_tooltip.current.offsetHeight <= 929) {
+
+            if (e.clientY + 40 + ref_tooltip.current.offsetHeight <= document.body.offsetHeight) {
                 ref_tooltip.current.style.top = e.clientY + 40 + 'px';
             }
             else {
-                ref_tooltip.current.style.top = 929 - ref_tooltip.current.offsetHeight + 'px'
+                ref_tooltip.current.style.top = document.body.offsetHeight - ref_tooltip.current.offsetHeight + 'px'
             }
         }
     }
