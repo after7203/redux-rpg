@@ -35,7 +35,7 @@ const initialState: PlayerState = {
   def_amp: 0,
   crit: 0.1,
   miss: 0.1,
-  gold: 0,
+  gold: 1000,
   equip: [0, 0, 0, 0, 0, 0],
 };
 
